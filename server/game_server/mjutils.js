@@ -1,4 +1,4 @@
-function checkTingPai(seatData,begin,end){
+function 	checkTingPai(seatData,begin,end){
 	for(var i = begin; i < end; ++i){
 		//如果这牌已经在和了，就不用检查了
 		if(seatData.tingMap[i] != null){
