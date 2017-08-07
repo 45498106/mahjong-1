@@ -28,6 +28,12 @@ cc.Class({
         pengangroot.scaleY *= scale;
         
         var self = this;
+
+        this.node.on('chi_notify', function(data) {
+            var data = data.detail;
+            self.onPengGangChanged(data);
+        });
+
         this.node.on('peng_notify',function(data){
             //刷新所有的牌
             //console.log(data.detail);
@@ -72,7 +78,7 @@ cc.Class({
     
     onPengGangChanged:function(seatData){
         
-        if(seatData.angangs == null && seatData.diangangs == null && seatData.wangangs == null && seatData.pengs == null){
+        if(seatData.angangs == null && seatData.diangangs == null && seatData.wangangs == null && seatData.pengs == null && seatData.chis == null){
             return;
         }
         var localIndex = cc.vv.gameNetMgr.getLocalIndex(seatData.seatindex);
@@ -119,7 +125,18 @@ cc.Class({
                 this.initPengAndGangs(pengangroot,side,pre,index,mjid,"peng");
                 index++;    
             }    
-        }        
+        }
+        
+        //初始化吃牌
+        // var chis = seatData.chis
+        // if(chis) {
+        //     for(var i = 0; i < chis.length; ++i) {
+        //         var mjid = chis[i];
+        //         mjid.push(0);
+        //         this.initPengAndGangs(pengangroot,side,pre,index,mjid,"chi");
+        //         index++;    
+        //     }
+        // }
     },
     
     initPengAndGangs:function(pengangroot,side,pre,index,mjid,flag){
@@ -167,10 +184,12 @@ cc.Class({
                         sprite.node.scaleX = 1.4;
                         sprite.node.scaleY = 1.4;                        
                     }
-                }   
-                else{
+                }
+                else {
                     sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID(pre,mjid);    
                 }
+            } else if (flag == "chis") {
+                sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID(pre,mjid[s]);
             }
             else{ 
                 sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID(pre,mjid);

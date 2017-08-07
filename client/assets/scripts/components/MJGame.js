@@ -406,6 +406,17 @@ cc.Class({
             self.hideOptions();
         });
         
+        this.node.on('chi_notify', function(data) {
+            self.hideChupai();
+            var seatData = data.detail;
+            if(seatData.seatindex == cc.vv.gameNetMgr.seatIndex) {
+                self.initMahjongs();
+            } else {
+                self.initOtherMahjongs(seatData);
+            }
+            self.hideOptions();
+        })
+
         this.node.on('gang_notify',function(data){
             self.hideChupai();
             var data = data.detail;
@@ -479,6 +490,7 @@ cc.Class({
                 child.getChildByName("btnPeng").active = false;
                 child.getChildByName("btnGang").active = false;
                 child.getChildByName("btnHu").active = false;
+                child.getChildByName("btnChi").active = false;
             }
         }
     },
@@ -488,15 +500,17 @@ cc.Class({
             this.hideOptions();
         }
         
-        if(data && (data.hu || data.gang || data.peng)){
+        if(data && (data.hu || data.gang || data.peng || data.chi)){
             this._options.active = true;
             if(data.hu){
                 this.addOption("btnHu",data.pai);
             }
+            if(data.chi) {
+                this.addOption("btnChi",data.pai);
+            }
             if(data.peng){
                 this.addOption("btnPeng",data.pai);
             }
-            
             if(data.gang){
                 for(var i = 0; i < data.gangpai.length;++i){
                     var gp = data.gangpai[i];
@@ -883,6 +897,9 @@ cc.Class({
         }
         else if(event.target.name == "btnGuo"){
             cc.vv.net.send("guo");
+        }
+        else if(event.target.name == "btnChi") {
+            cc.vv.net.send("chi");
         }
     },
     

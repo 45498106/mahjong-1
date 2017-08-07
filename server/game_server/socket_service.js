@@ -169,6 +169,13 @@ exports.start = function(config,mgr){
 			socket.gameMgr.chuPai(socket.userId,pai);
 		});
 		
+		socket.on('chi',function(data) {
+			if(socket.userId == null) {
+				return;
+			}
+			socket.gameMgr.chi(socket.userId);
+		});
+
 		//碰
 		socket.on('peng',function(data){
 			if(socket.userId == null){
