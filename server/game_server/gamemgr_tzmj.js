@@ -145,17 +145,17 @@ function checkCanChi(game, seatData, targetPai) {
     //type1
     if (chiCompare(seatData, targetPai, targetPai - 2, targetPai - 1)) {
         seatData.canChi = true;
-        return;
+        seatData.chiType.push([targetPai - 2, targetPai - 1]);
     }
     //type2
     if (chiCompare(seatData, targetPai, targetPai - 1, targetPai + 1)) {
         seatData.canChi = true;
-        return;
+        seatData.chiType.push([targetPai - 1, targetPai + 1]);
     }
     //type3
     if (chiCompare(seatData, targetPai, targetPai + 1, targetPai + 2)) {
         seatData.canChi = true;
-        return;
+        seatData.chiType.push([targetPai + 1, targetPai + 2]);
     }
 }
 
@@ -221,6 +221,7 @@ function checkCanHu(game,seatData,targetPai) {
 function clearAllOptions(game,seatData){
     var fnClear = function(sd){
         sd.canChi = false;
+        sd.chiType = [];
         sd.canPeng = false;
         sd.canGang = false;
         sd.gangPai = [];
@@ -371,6 +372,7 @@ function sendOperations(game,seatData,pai) {
         var data = {
             pai:pai,
             hu:seatData.canHu,
+            chiType:seatData.chiType,
             chi:seatData.canChi,
             peng:seatData.canPeng,
             gang:seatData.canGang,
@@ -1244,6 +1246,8 @@ exports.begin = function(roomId) {
 
         //是否可以吃
         data.canChi = false;
+        //可以吃牌的类型
+        data.chiType = [];
         //是否可以碰
         data.canPeng = false;
         //是否可以胡
@@ -1653,7 +1657,7 @@ exports.chuPai = function(userId,pai){
     }
 };
 
-exports.chi = function(userId) {
+exports.chi = function(userId, chiType) {
     var seatData = gameSeatsOfUsers[userId];
     if(seatData == null){
         console.log("can't find user game data.");
@@ -1713,19 +1717,8 @@ exports.chi = function(userId) {
 
     //验证手上的牌的数目
     var pai = game.chuPai;
-    var chiPais = [];
-    if (chiCompare(seatData, pai, pai - 2, pai - 1)) {
-        chiPais.push(pai - 2);
-        chiPais.push(pai - 1);
-    } else if (chiCompare(seatData, pai, pai - 1, pai + 1)) {
-        chiPais.push(pai - 1);
-        chiPais.push(pai + 1);
-    } else if (chiCompare(seatData, pai, pai + 1, pai + 2)) {
-        chiPais.push(pai + 1);
-        chiPais.push(pai + 2);
-    }
-
-    if(chiPais.length == 0) {
+    var chiPais = chiType;
+    if (!chiCompare(seatData, pai, chiPais[0], chiPais[1])) {
         return;
     }
 
@@ -1741,9 +1734,11 @@ exports.chi = function(userId) {
         seatData.holds.splice(index,1);
         seatData.countMap[chiPais[i]] --;
     }
+    chiPais.push(game.chuPai);
+    chiPais.sort(function(a,b){
+        return a-b});
     seatData.chis.push(chiPais);
     game.chuPai = -1;
-
     recordGameAction(game,seatData.seatIndex,ACTION_CHI,pai);
 
     // chiPais.push(pai);
@@ -1799,7 +1794,6 @@ exports.peng = function(userId){
             }
         }
     }
-
 
     clearAllOptions(game);
 

@@ -128,15 +128,14 @@ cc.Class({
         }
         
         //初始化吃牌
-        // var chis = seatData.chis
-        // if(chis) {
-        //     for(var i = 0; i < chis.length; ++i) {
-        //         var mjid = chis[i];
-        //         mjid.push(0);
-        //         this.initPengAndGangs(pengangroot,side,pre,index,mjid,"chi");
-        //         index++;    
-        //     }
-        // }
+        var chis = seatData.chis
+        if(chis) {
+            for(var i = 0; i < chis.length; ++i) {
+                var mjid = chis[i];
+                this.initPengAndGangs(pengangroot,side,pre,index,mjid,"chi");
+                index++;    
+            }
+        }
     },
     
     initPengAndGangs:function(pengangroot,side,pre,index,mjid,flag){
@@ -188,7 +187,7 @@ cc.Class({
                 else {
                     sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID(pre,mjid);    
                 }
-            } else if (flag == "chis") {
+            } else if (flag == "chi") {
                 sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID(pre,mjid[s]);
             }
             else{ 

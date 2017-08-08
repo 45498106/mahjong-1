@@ -14,6 +14,7 @@ cc.Class({
         
         _myMJArr:[],
         _options:null,
+        _chitype:null,
         _selectedMJ:null,
         _chupaiSprite:[],
         _mjcount:null,
@@ -111,6 +112,8 @@ cc.Class({
         
         var opts = gameChild.getChildByName("ops");
         this._options = opts;
+        var chitype = gameChild.getChildByName("ChiPais");
+        this._chitype = chitype;
         this.hideOptions();
         this.hideChupai();
     },
@@ -415,6 +418,7 @@ cc.Class({
                 self.initOtherMahjongs(seatData);
             }
             self.hideOptions();
+            self.hideChiPais();
         })
 
         this.node.on('gang_notify',function(data){
@@ -466,7 +470,7 @@ cc.Class({
         }
     },
     
-    addOption:function(btnName,pai){
+    addOption:function(btnName,pai,chiType = []){
         for(var i = 0; i < this._options.childrenCount; ++i){
             var child = this._options.children[i]; 
             if(child.name == "op" && child.active == false){
@@ -476,6 +480,7 @@ cc.Class({
                 var btn = child.getChildByName(btnName); 
                 btn.active = true;
                 btn.pai = pai;
+                btn.chiType = chiType;
                 return;
             }
         }
@@ -506,7 +511,7 @@ cc.Class({
                 this.addOption("btnHu",data.pai);
             }
             if(data.chi) {
-                this.addOption("btnChi",data.pai);
+                this.addOption("btnChi",data.pai,data.chiType);
             }
             if(data.peng){
                 this.addOption("btnPeng",data.pai);
@@ -737,7 +742,7 @@ cc.Class({
         var game = this.node.getChildByName("game");
         var sideRoot = game.getChildByName(side);
         var sideHolds = sideRoot.getChildByName("holds");
-        var num = seatData.pengs.length + seatData.angangs.length + seatData.diangangs.length + seatData.wangangs.length;
+        var num = seatData.pengs.length + seatData.chis.length + seatData.angangs.length + seatData.diangangs.length + seatData.wangangs.length;
         num *= 3;
         for(var i = 0; i < num; ++i){
             var idx = this.getMJIndex(side,i);
@@ -796,7 +801,7 @@ cc.Class({
         }
         
         //初始化手牌
-        var lackingNum = (seatData.pengs.length + seatData.angangs.length + seatData.diangangs.length + seatData.wangangs.length)*3;
+        var lackingNum = (seatData.pengs.length + seatData.chis.length + seatData.angangs.length + seatData.diangangs.length + seatData.wangangs.length)*3;
         for(var i = 0; i < holds.length; ++i){
             var mjid = holds[i];
             var sprite = this._myMJArr[i + lackingNum];
@@ -899,10 +904,52 @@ cc.Class({
             cc.vv.net.send("guo");
         }
         else if(event.target.name == "btnChi") {
-            cc.vv.net.send("chi");
+            var chiType = event.target.chiType;
+            console.log(chiType);
+            if (chiType.length == 1) {
+                cc.vv.net.send("chi", JSON.stringify({chiType: chiType[0]}));
+            } else if (chiType.length > 1) {
+                this.onOptionChiClicked(chiType);
+            }
         }
     },
     
+    onOptionChiClicked:function(chiType) {
+        this._chitype.active = true;
+        for(var i = 0; i < 3; ++i){
+            var child = this._chitype.children[i];
+            if (i < chiType.length) {
+                child.chiType = chiType[i];
+                var chiType3 = [chiType[i][0], chiType[i][1]];
+                var pai = cc.vv.gameNetMgr.chupai;
+                chiType3.push(pai);
+                chiType3.sort();
+                for (var j = 0; j < chiType3.length; j++) {
+                    var sprite = child.children[j].getComponent(cc.Sprite);
+                    sprite.spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID("M_",chiType3[j]);
+                }
+                child.active = true;
+            } else {
+                child.active = false;
+            }
+        }
+    },
+
+    hideChiPais:function(data){
+        this._chitype.active = false;
+        for(var i = 0; i < this._chitype.childrenCount; ++i){
+            var child = this._chitype.children[i]; 
+            child.active = false;
+        }
+    },
+
+    onChiTypeClicked:function(event) {
+        console.log("chiType test");
+        var chiType = event.target.chiType;
+        cc.vv.net.send("chi", JSON.stringify({chiType: chiType}));
+    },
+    
+
     // called every frame, uncomment this function to activate update callback
     update: function (dt) {
     },

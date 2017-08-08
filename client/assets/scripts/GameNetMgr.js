@@ -575,12 +575,16 @@ cc.Class({
     doChi:function(seatIndex, chiPais) {
         var seatData = this.seats[seatIndex];
         if(seatData.holds) {
-            for(var i = 0; i < 2; ++i) {
-                var idx = seatData.holds.indexOf(chiPais[i]);
-                seatData.holds.splice(idx, 1);
+            for(var i = 0; i < chiPais.length; ++i) {
+                if (this.chupai != chiPais[i]) {
+                    var idx = seatData.holds.indexOf(chiPais[i]);
+                    seatData.holds.splice(idx, 1);
+                }
             }
         }
         //更新吃牌数据
+        chiPais.sort(function(a,b){
+            return a-b});
         var chis = seatData.chis;
         chis.push(chiPais);
         this.dispatchEvent('chi_notify', seatData);

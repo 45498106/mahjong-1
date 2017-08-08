@@ -173,7 +173,10 @@ exports.start = function(config,mgr){
 			if(socket.userId == null) {
 				return;
 			}
-			socket.gameMgr.chi(socket.userId);
+			if(typeof(data) == "string"){
+				data = JSON.parse(data);
+			}
+			socket.gameMgr.chi(socket.userId, data.chiType);
 		});
 
 		//碰
