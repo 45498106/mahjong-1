@@ -18,6 +18,7 @@ cc.Class({
         gamestate:"",
         isOver:false,
         dissoveData:null,
+        depai:null,
         // foo: {
         //    default: null,
         //    url: cc.Texture2D,  // optional, default is typeof default
@@ -39,6 +40,7 @@ cc.Class({
         this.isDingQueing = false;
         this.isHuanSanZhang = false;
         this.curaction = null;
+        this.depai = null;
         for(var i = 0; i < this.seats.length; ++i){
             this.seats[i].holds = [];
             this.seats[i].folds = [];
@@ -62,6 +64,7 @@ cc.Class({
             this.roomId = null;
             this.maxNumOfGames = 0;
             this.numOfGames = 0;        
+            this.depai = null;
         }
     },
     
@@ -303,7 +306,12 @@ cc.Class({
             }
             self.dispatchEvent('game_holds');
         });
-         
+        
+        cc.vv.net.addHandler('game_depai_push',function(data){
+            self.depai = data;
+            self.dispatchEvent('game_depai');
+        });
+
         cc.vv.net.addHandler("game_begin_push",function(data){
             console.log('game_action_push');
             console.log(data);
@@ -334,6 +342,7 @@ cc.Class({
             self.button = data.button;
             self.chupai = data.chuPai;
             self.huanpaimethod = data.huanpaimethod;
+            self.depai = data.depai;
             for(var i = 0; i < 4; ++i){
                 var seat = self.seats[i];
                 var sd = data.seats[i];

@@ -33,7 +33,7 @@ function getMJType(id){
     //     //风
     //     return 3;
     // }
-    // else if(id >= 31 && id < 33) {
+    // else if(id >= 31 && id < 34) {
     //     //字
     //     return 4;
     // }
@@ -70,18 +70,18 @@ function shuffle(game) {
         }
     }
 
-    //风牌
-    //27-30表示东南西北
-    for(var i = 27; i < 31; ++i) {
+    //字牌 27 中 28 发 29 白
+    //27-29表示中发白
+    for(var i = 27; i < 30; i++) {
         for(var c = 0; c < 4; ++c) {
             mahjongs[index] = i;
             index++;
         }
     }
 
-    //字牌
-    //31-33表示中发白
-    for(var i = 31; i < 34; i++) {
+    //风牌 30 东 31 西 32 南 33 北
+    //30-33表示东西南北
+    for(var i = 30; i < 34; ++i) {
         for(var c = 0; c < 4; ++c) {
             mahjongs[index] = i;
             index++;
@@ -137,22 +137,23 @@ function deal(game){
     mopai(game,game.button);
     //当前轮设置为庄家
     game.turn = game.button;
+
+    var depai = game.mahjongs.splice(53, 1);
+    game.mahjongs.push(depai[0]);
+    game.depai = depai[0];
 }
 
 //检查是否可以吃牌
 function checkCanChi(game, seatData, targetPai) {
     if (getMJType(targetPai) == -1) return;
-    //type1
     if (chiCompare(seatData, targetPai, targetPai - 2, targetPai - 1)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai - 2, targetPai - 1]);
     }
-    //type2
     if (chiCompare(seatData, targetPai, targetPai - 1, targetPai + 1)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai - 1, targetPai + 1]);
     }
-    //type3
     if (chiCompare(seatData, targetPai, targetPai + 1, targetPai + 2)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai + 1, targetPai + 2]);
@@ -242,90 +243,96 @@ function clearAllOptions(game,seatData){
 //检查听牌
 function checkCanTingPai(game,seatData){
     seatData.tingMap = {};
-
+/** 台州麻将胡牌牌型
+ * (1)11、123、123、123、123
+ * (2)11、123、123、123、111(1111，下同)
+ * (3)11、123、123、111、111
+ * (4)11、123、111、111、111
+ * (5)11、111、111、111、111
+ */
     //检查是否是七对 前提是没有碰，也没有杠 ，即手上拥有13张牌
-    if(seatData.holds.length == 13){
-        //有5对牌
-        var hu = false;
-        var danPai = -1;
-        var pairCount = 0;
-        for(var k in seatData.countMap){
-            var c = seatData.countMap[k];
-            if( c == 2 || c == 3){
-                pairCount++;
-            }
-            else if(c == 4){
-                pairCount += 2;
-            }
+    // if(seatData.holds.length == 13){
+    //     //有5对牌
+    //     var hu = false;
+    //     var danPai = -1;
+    //     var pairCount = 0;
+    //     for(var k in seatData.countMap){
+    //         var c = seatData.countMap[k];
+    //         if( c == 2 || c == 3){
+    //             pairCount++;
+    //         }
+    //         else if(c == 4){
+    //             pairCount += 2;
+    //         }
 
-            if(c == 1 || c == 3){
-                //如果已经有单牌了，表示不止一张单牌，并没有下叫。直接闪
-                if(danPai >= 0){
-                    break;
-                }
-                danPai = k;
-            }
-        }
-
-        //检查是否有6对 并且单牌是不是目标牌
-        if(pairCount == 6){
-            //七对只能和一张，就是手上那张单牌
-            //七对的番数＝ 2番+N个4个牌（即龙七对）
-            seatData.tingMap[danPai] = {
-                fan:2,
-                pattern:"7pairs"
-            };
-            //如果是，则直接返回咯
-        }
-    }
+    //         if(c == 1 || c == 3){
+    //             //如果已经有单牌了，表示不止一张单牌，并没有下叫。直接闪
+    //             if(danPai >= 0){
+    //                 break;
+    //             }
+    //             danPai = k;
+    //         }
+    //     }
+    // 
+    //     //检查是否有6对 并且单牌是不是目标牌
+    //     if(pairCount == 6){
+    //         //七对只能和一张，就是手上那张单牌
+    //         //七对的番数＝ 2番+N个4个牌（即龙七对）
+    //         seatData.tingMap[danPai] = {
+    //             fan:2,
+    //             pattern:"7pairs"
+    //         };
+    //         //如果是，则直接返回咯
+    //     }
+    // }
 
     //检查是否是对对胡  由于四川麻将没有吃，所以只需要检查手上的牌
     //对对胡叫牌有两种情况
     //1、N坎 + 1张单牌
     //2、N-1坎 + 两对牌
-    var singleCount = 0;
-    var colCount = 0;
-    var pairCount = 0;
-    var arr = [];
-    for(var k in seatData.countMap){
-        var c = seatData.countMap[k];
-        if(c == 1){
-            singleCount++;
-            arr.push(k);
-        }
-        else if(c == 2){
-            pairCount++;
-            arr.push(k);
-        }
-        else if(c == 3){
-            colCount++;
-        }
-        else if(c == 4){
-            //手上有4个一样的牌，在四川麻将中是和不了对对胡的 随便加点东西
-            singleCount++;
-            pairCount+=2;
-        }
-    }
+    // var singleCount = 0;
+    // var colCount = 0;
+    // var pairCount = 0;
+    // var arr = [];
+    // for(var k in seatData.countMap){
+    //     var c = seatData.countMap[k];
+    //     if(c == 1){
+    //         singleCount++;
+    //         arr.push(k);
+    //     }
+    //     else if(c == 2){
+    //         pairCount++;
+    //         arr.push(k);
+    //     }
+    //     else if(c == 3){
+    //         colCount++;
+    //     }
+    //     else if(c == 4){
+    //         //手上有4个一样的牌，在四川麻将中是和不了对对胡的 随便加点东西
+    //         singleCount++;
+    //         pairCount+=2;
+    //     }
+    // }
 
-    if((pairCount == 2 && singleCount == 0) || (pairCount == 0 && singleCount == 1) ){
-        for(var i = 0; i < arr.length; ++ i){
-            //对对胡1番
-            var p = arr[i];
-            if(seatData.tingMap[p] == null){
-                seatData.tingMap[p] = {
-                    pattern:"duidui",
-                    fan:1
-                };
-            }
-        }
-    }
+    // if((pairCount == 2 && singleCount == 0) || (pairCount == 0 && singleCount == 1) ){
+    //     for(var i = 0; i < arr.length; ++ i){
+    //         //对对胡1番
+    //         var p = arr[i];
+    //         if(seatData.tingMap[p] == null){
+    //             seatData.tingMap[p] = {
+    //                 pattern:"duidui",
+    //                 fan:1
+    //             };
+    //         }
+    //     }
+    // }
 
     //console.log(seatData.holds);
     //console.log(seatData.countMap);
     //console.log("singleCount:" + singleCount + ",colCount:" + colCount + ",pairCount:" + pairCount);
-    //检查是不是平胡
+    // 检查是不是平胡
 
-    // qiyisi
+    mjutils.checkTingPai(seatData,0,34,game.depai);
     // if(seatData.que != 0){
     //     mjutils.checkTingPai(seatData,0,9);        
     // }
@@ -1081,7 +1088,8 @@ exports.setReady = function(userId,callback){
             button:game.button,
             turn:game.turn,
             chuPai:game.chuPai,
-            huanpaimethod:game.huanpaiMethod
+            huanpaimethod:game.huanpaiMethod,
+            depai:game.depai
         };
 
         data.seats = [];
@@ -1289,8 +1297,6 @@ exports.begin = function(roomId) {
     //发牌
     deal(game);
 
-    
-
     var numOfMJ = game.mahjongs.length - game.currentIndex;
     var huansanzhang = roomInfo.conf.hsz;
 
@@ -1299,23 +1305,14 @@ exports.begin = function(roomId) {
         var s = seats[i];
         //通知玩家手牌
         userMgr.sendMsg(s.userId,'game_holds_push',game.gameSeats[i].holds);
+        //通知玩家得牌
+        userMgr.sendMsg(s.userId,'game_depai_push',game.depai);
         //通知还剩多少张牌
         userMgr.sendMsg(s.userId,'mj_count_push',numOfMJ);
         //通知还剩多少局
         userMgr.sendMsg(s.userId,'game_num_push',roomInfo.numOfGames);
         //通知游戏开始
         userMgr.sendMsg(s.userId,'game_begin_push',game.button);
-
-        // if(huansanzhang == true){
-        //     game.state = "huanpai";
-        //     //通知准备换牌
-        //     userMgr.sendMsg(s.userId,'game_huanpai_push');
-        // }
-        // else{
-        //     game.state = "dingque";
-        //     //通知准备定缺
-        //     userMgr.sendMsg(s.userId,'game_dingque_push');
-        // }
     }
 
     construct_game_base_info(game);
@@ -1551,7 +1548,6 @@ exports.dingQue = function(userId,type){
 };
 
 exports.chuPai = function(userId,pai){
-
     pai = Number.parseInt(pai);
     var seatData = gameSeatsOfUsers[userId];
     if(seatData == null){
@@ -1560,6 +1556,11 @@ exports.chuPai = function(userId,pai){
     }
 
     var game = seatData.game;
+    //如果是得牌，则忽略
+    if(pai == game.depai) {
+        console.log("cannot paly depai");
+        return;
+    }
     var seatIndex = seatData.seatIndex;
     //如果不该他出，则忽略
     if(game.turn != seatData.seatIndex){
@@ -2210,18 +2211,19 @@ exports.hu = function(userId){
     }
 
     //如果只有一家没有胡，则结束
-    var numOfHued = 0;
-    for(var i = 0; i < game.gameSeats.length; ++i){
-        var ddd = game.gameSeats[i];
-        if(ddd.hued){
-            numOfHued ++;
-        }
-    }
-    //和了三家
-    if(numOfHued == 3){
-        doGameOver(game,seatData.userId);
-        return;
-    }
+    // var numOfHued = 0;
+    // for(var i = 0; i < game.gameSeats.length; ++i){
+    //     var ddd = game.gameSeats[i];
+    //     if(ddd.hued){
+    //         numOfHued ++;
+    //     }
+    // }
+    // //和了三家
+    // if(numOfHued == 3){
+    //     doGameOver(game,seatData.userId);
+    //     return;
+    // }
+    doGameOver(game, seatData.userId);
 
     //清空所有非胡牌操作
     for(var i = 0; i < game.gameSeats.length; ++i){
@@ -2258,7 +2260,7 @@ exports.guo = function(userId){
     var game = seatData.game;
 
     //如果玩家没有对应的操作，则也认为是非法消息
-    if((seatData.canGang || seatData.canPeng || seatData.canHu) == false){
+    if((seatData.canGang || seatData.canPeng || seatData.canHu || seatData.canChi) == false){
         console.log("no need guo.");
         return;
     }

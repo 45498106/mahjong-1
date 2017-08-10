@@ -22,5 +22,6 @@
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
   "mergeStartScene": false,
-  "optimizeHotUpdate": false
+  "optimizeHotUpdate": false,
+  "includeSDKBox": false
 }

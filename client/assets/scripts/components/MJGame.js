@@ -23,6 +23,7 @@ cc.Class({
         _hupaiLists:[],
         _playEfxs:[],
         _opts:[],
+        _depai:null,
     },
     
     onLoad: function () {
@@ -114,6 +115,8 @@ cc.Class({
         this._options = opts;
         var chitype = gameChild.getChildByName("ChiPais");
         this._chitype = chitype;
+        this._depai = gameChild.getChildByName("depai");
+        this._depai.active = false;
         this.hideOptions();
         this.hideChupai();
     },
@@ -228,6 +231,11 @@ cc.Class({
             this._chupaiSprite[i].node.active = false;
         }        
     },
+
+    initDepai:function() {
+        this._depai.active = true;
+        this._depai.getComponent(cc.Sprite).spriteFrame = cc.vv.mahjongmgr.getSpriteFrameByMJID("M_",cc.vv.gameNetMgr.depai);
+    },
     
     initEventHandlers:function(){
         cc.vv.gameNetMgr.dataEventHandler = this.node;
@@ -238,6 +246,10 @@ cc.Class({
         this.node.on('game_holds',function(data){
            self.initMahjongs();
            self.checkQueYiMen();
+        });
+
+        this.node.on('game_depai', function(data){
+            self.initDepai();
         });
         
         this.node.on('game_begin',function(data){
@@ -377,6 +389,7 @@ cc.Class({
         this.node.on('guo_notify',function(data){
             self.hideChupai();
             self.hideOptions();
+            self.hideChiPais();
             var seatData = data.detail;
             //如果是自己，则刷新手牌
             if(seatData.seatindex == cc.vv.gameNetMgr.seatIndex){
@@ -627,6 +640,7 @@ cc.Class({
         }
         
         this.checkQueYiMen();
+        this.initDepai();
     },
     
     onMJClicked:function(event){
@@ -783,7 +797,8 @@ cc.Class({
         }
         
         var dingque = seatData.dingque;
-        cc.vv.mahjongmgr.sortMJ(holds,dingque);
+        // cc.vv.mahjongmgr.sortMJ(holds,dingque);
+        cc.vv.mahjongmgr.sortMJWithDepai(holds, cc.vv.gameNetMgr.depai);
         
         //将摸牌添加到最后
         if(mopai != null){

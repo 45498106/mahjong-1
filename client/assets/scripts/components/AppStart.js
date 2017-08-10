@@ -208,6 +208,45 @@ function checkSingle(seatData){
 	return matchSingle(seatData,selected);
 }
 
+function runLoop(seatData, depaiCount) {
+	var ret = null;
+	if(depaiCount == 0) {
+		return ret = checkCanHu(seatData);
+	} else {
+		for (var i = 0; i < 34; i++) {
+			seatData.holds.push(i);
+			if (seatData.countMap[i] == null) seatData.countMap[i] = 0;
+			seatData.countMap[i]++;
+			depaiCount--;
+			ret = runLoop(seatData, depaiCount);
+			depaiCount++;
+			seatData.countMap[i]--;
+			seatData.holds.pop();
+			if (ret) return true;
+		}
+	}
+}
+
+function beginLoop(seatData, depai) {
+	var depaiCount = seatData.countMap[depai];
+	depaiCount == null? 0: depaiCount;
+	seatData.countMap[depai] = 0;
+	for (var i = 0; i < depaiCount; i++) {
+		for (var j = 0; j < seatData.holds.length; j++) {
+			if (seatData.holds[j] == depai) {
+				seatData.holds.splice(j, 1);
+				break;
+			}
+		}
+	}
+	var ret = runLoop(seatData, depaiCount);
+	for (var i = 0; i < depaiCount; i++) {
+		seatData.holds.push(depai);
+	}
+	seatData.countMap[depai] = depaiCount;
+	return ret;
+}
+
 function checkCanHu(seatData){
 	for(var k in seatData.countMap){
 		k = parseInt(k);
@@ -369,18 +408,21 @@ cc.Class({
     },
 
     onBtnClicked:function(event) {
-        console.log("qiyisi");
-        var data = [0,0,1,1,1,2,2,2,3,3,3,4,4,4];
+		console.log("qiyisi");
+		var depai = 20;
+        var data = [0,0,1,1,1,2,2,2,3,20,3,4,4,20];
         var seatData = {};
         seatData.holds = data;
-        seatData.countMap = [];
+		seatData.countMap = [];
+		// seatData.depai = depai;
         for (var i = 0; i < data.length; i++) {
             if (seatData.countMap[data[i]] == null) {
                 seatData.countMap[data[i]] = 0;
             }
-            seatData.countMap[i]++;
+            seatData.countMap[data[i]]++;
         }
-        console.log(checkCanHu(seatData));
+		// console.log(checkCanHu(seatData));
+		console.log(beginLoop(seatData, depai));
     },
 
     onBtnDownloadClicked:function(){
@@ -425,8 +467,6 @@ cc.Class({
     },
     
     getServerInfo:function(){
-        return;
-
         var self = this;
         var onGetVersion = function(ret){
             if(ret.version == null){

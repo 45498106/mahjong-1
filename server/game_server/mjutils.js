@@ -1,4 +1,4 @@
-function 	checkTingPai(seatData,begin,end){
+function checkTingPai(seatData,begin,end,depai){
 	for(var i = begin; i < end; ++i){
 		//如果这牌已经在和了，就不用检查了
 		if(seatData.tingMap[i] != null){
@@ -16,7 +16,8 @@ function 	checkTingPai(seatData,begin,end){
 
 		seatData.holds.push(i);
 		//逐个判定手上的牌
-		var ret = checkCanHu(seatData);
+		// var ret = checkCanHu(seatData);
+		var ret = beginLoop(seatData,depai);
 		if(ret){
 			//平胡 0番
 			seatData.tingMap[i] = {
@@ -205,6 +206,49 @@ function checkSingle(seatData){
 	return matchSingle(seatData,selected);
 }
 
+function runLoop(seatData, depaiCount) {
+	var ret = null;
+	if(depaiCount == 0) {
+		return ret = checkCanHu(seatData);
+	} else {
+		for (var i = 0; i < 34; i++) {
+			seatData.holds.push(i);
+			if (seatData.countMap[i] == null) seatData.countMap[i] = 0;
+			seatData.countMap[i]++;
+			depaiCount--;
+			ret = runLoop(seatData, depaiCount);
+			depaiCount++;
+			seatData.countMap[i]--;
+			seatData.holds.pop();
+			if (ret) return true;
+		}
+	}
+}
+
+function beginLoop(seatData, depai) {
+	// if (seatData.countMap[depai] == null || seatData.countMap[depai] == undefined) {
+	// 	seatData.countMap[depai] == 0;
+	// }
+	var depaiCount = seatData.countMap[depai];
+	if (!depaiCount) depaiCount = 0;
+	seatData.countMap[depai] = 0;
+	for (var i = 0; i < depaiCount; i++) {
+		for (var j = 0; j < seatData.holds.length; j++) {
+			if (seatData.holds[j] == depai) {
+				seatData.holds.splice(j, 1);
+				break;
+			}
+		}
+	}
+	var ret = runLoop(seatData, depaiCount);
+	for (var i = 0; i < depaiCount; i++) {
+		seatData.holds.push(depai);
+	}
+	seatData.countMap[depai] = depaiCount;
+	return ret;
+}
+
+
 function checkCanHu(seatData){
 	for(var k in seatData.countMap){
 		k = parseInt(k);
@@ -230,21 +274,6 @@ function checkCanHu(seatData){
 		}
 	}
 }
-
-/*
-console.log(Date.now());
-//检查筒子
-checkTingPai(seatData,0,9);
-//检查条子
-checkTingPai(seatData,9,18);
-//检查万字
-checkTingPai(seatData,18,27);
-console.log(Date.now());
-
-for(k in seatData.tingMap){
-	console.log(nameMap[k]);	
-}
-*/
 
 exports.checkTingPai = checkTingPai;
 

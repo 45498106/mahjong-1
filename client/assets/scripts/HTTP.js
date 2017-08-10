@@ -1,5 +1,6 @@
 var URL = "http://127.0.0.1:9000";
-//var URL = "http://10.0.0.23:9000";
+//var URL = "http://10.0.0.23:9000";//内网
+//var URL = "http://47.93.238.21:9000";//外网
 
 var HTTP = cc.Class({
     extends: cc.Component,

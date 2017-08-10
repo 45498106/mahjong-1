@@ -179,6 +179,14 @@ cc.Class({
             return a - b;
         });
     },
+    sortMJWithDepai: function(mahjongs, depai) {
+        var self = this;
+        mahjongs.sort(function(a, b) {
+            if (a == depai) return -1;
+            else if (b == depai) return 1;
+            return a - b;
+        });
+    },
     
     getSide:function(localIndex){
         return this._sides[localIndex];
