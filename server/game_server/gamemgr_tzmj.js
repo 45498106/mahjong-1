@@ -146,26 +146,27 @@ function deal(game){
 //检查是否可以吃牌
 function checkCanChi(game, seatData, targetPai) {
     if (getMJType(targetPai) == -1) return;
-    if (chiCompare(seatData, targetPai, targetPai - 2, targetPai - 1)) {
+    if (chiCompare(seatData, targetPai, targetPai - 2, targetPai - 1, game.depai)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai - 2, targetPai - 1]);
     }
-    if (chiCompare(seatData, targetPai, targetPai - 1, targetPai + 1)) {
+    if (chiCompare(seatData, targetPai, targetPai - 1, targetPai + 1, game.depai)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai - 1, targetPai + 1]);
     }
-    if (chiCompare(seatData, targetPai, targetPai + 1, targetPai + 2)) {
+    if (chiCompare(seatData, targetPai, targetPai + 1, targetPai + 2, game.depai)) {
         seatData.canChi = true;
         seatData.chiType.push([targetPai + 1, targetPai + 2]);
     }
 }
 
-function chiCompare(seatData, pai, pai1, pai2) {
-    if (getMJType(pai) == getMJType(pai1) && getMJType(pai) == getMJType(pai2)) {
+function chiCompare(seatData, pai, pai1, pai2, depai) {
+    if (pai != depai && pai1 != depai && pai2 != depai &&
+        getMJType(pai) == getMJType(pai1) && getMJType(pai) == getMJType(pai2)) {
         if (seatData.countMap[pai1] != null && seatData.countMap[pai1] > 0 &&
             seatData.countMap[pai2] != null && seatData.countMap[pai2] > 0) {
                 return true;
-            }
+        }
     }
     return false;
 }
@@ -213,7 +214,7 @@ function checkCanHu(game,seatData,targetPai) {
     game.lastHuPaiSeat = -1;
     seatData.canHu = false;
     for(var k in seatData.tingMap){
-        if(targetPai == k){
+        if(targetPai == k || targetPai == game.depai){
             seatData.canHu = true;
         }
     }

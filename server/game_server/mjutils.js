@@ -1,5 +1,6 @@
 function checkTingPai(seatData,begin,end,depai){
 	for(var i = begin; i < end; ++i){
+		if(i == depai) continue;
 		//如果这牌已经在和了，就不用检查了
 		if(seatData.tingMap[i] != null){
 			continue;
@@ -28,7 +29,13 @@ function checkTingPai(seatData,begin,end,depai){
 		
 		//搞完以后，撤消刚刚加的牌
 		seatData.countMap[i] = old;
-		seatData.holds.pop();
+		// seatData.holds.pop();
+		for(var j = 0; j < seatData.holds.length; j++) {
+			if(seatData.holds[j] == i) {
+				 seatData.holds.splice(j, 1);
+				break;
+			}
+		}
 	}	
 }
 
@@ -40,7 +47,21 @@ function debugRecord(pai){
 	}
 }
 
+function getMJType(id){
+	if(id >= 0 && id < 9){
+		return 0;
+	}
+	else if(id >= 9 && id < 18){
+		return 1;
+	}
+	else if(id >= 18 && id < 27){
+		return 2;
+	}
+	return -1;
+}
+
 function matchSingle(seatData,selected){
+	if (getMJType(selected) == -1) return false;
 	//分开匹配 A-2,A-1,A
 	var matched = true;
 	var v = selected % 9;
@@ -201,22 +222,23 @@ function checkSingle(seatData){
 			return true;
 		}
 	}
-	
 	//按单牌处理
 	return matchSingle(seatData,selected);
 }
 
-function runLoop(seatData, depaiCount) {
+function runLoop(seatData, depaiCount, depai) {
 	var ret = null;
 	if(depaiCount == 0) {
-		return ret = checkCanHu(seatData);
+		ret = checkCanHuWithBaiban(seatData, depai);
+		return ret;
 	} else {
 		for (var i = 0; i < 34; i++) {
+			if (i == depai) continue;
 			seatData.holds.push(i);
 			if (seatData.countMap[i] == null) seatData.countMap[i] = 0;
 			seatData.countMap[i]++;
 			depaiCount--;
-			ret = runLoop(seatData, depaiCount);
+			ret = runLoop(seatData, depaiCount, depai);
 			depaiCount++;
 			seatData.countMap[i]--;
 			seatData.holds.pop();
@@ -226,9 +248,6 @@ function runLoop(seatData, depaiCount) {
 }
 
 function beginLoop(seatData, depai) {
-	// if (seatData.countMap[depai] == null || seatData.countMap[depai] == undefined) {
-	// 	seatData.countMap[depai] == 0;
-	// }
 	var depaiCount = seatData.countMap[depai];
 	if (!depaiCount) depaiCount = 0;
 	seatData.countMap[depai] = 0;
@@ -240,7 +259,7 @@ function beginLoop(seatData, depai) {
 			}
 		}
 	}
-	var ret = runLoop(seatData, depaiCount);
+	var ret = runLoop(seatData, depaiCount, depai);
 	for (var i = 0; i < depaiCount; i++) {
 		seatData.holds.push(depai);
 	}
@@ -248,6 +267,46 @@ function beginLoop(seatData, depai) {
 	return ret;
 }
 
+function baibanLoop(seatData, baibanCount, depai) {
+	var ret = null;
+	if(baibanCount == 0) {
+		return ret = checkCanHu(seatData);
+	} else {
+		for (var i = 0; i < 2; i++) {
+			var v;
+			if (i == 0) v = 29; else v = depai; 
+			seatData.holds.push(v);
+			if (seatData.countMap[v] == null) seatData.countMap[v] = 0;
+			seatData.countMap[v]++;
+			baibanCount--;
+			ret = baibanLoop(seatData, baibanCount, depai);
+			baibanCount++;
+			seatData.countMap[v]--;
+			seatData.holds.pop();
+			if (ret) return true;
+		}
+	}
+}
+
+function checkCanHuWithBaiban(seatData, depai) {
+	var baibanCount = seatData.countMap[29];
+	if (!baibanCount) baibanCount = 0;
+	seatData.countMap[29] = 0;
+	for (var i = 0; i < baibanCount; i++) {
+		for (var j = 0; j < seatData.holds.length; j++) {
+			if (seatData.holds[j] == 29) {
+				seatData.holds.splice(j, 1);
+				break;
+			}
+		}
+	}
+	var ret = baibanLoop(seatData, baibanCount, depai);
+	for (var i = 0; i < baibanCount; i++) {
+		seatData.holds.push(29);
+	}
+	seatData.countMap[29] = baibanCount;
+	return ret;
+}
 
 function checkCanHu(seatData){
 	for(var k in seatData.countMap){
@@ -276,15 +335,3 @@ function checkCanHu(seatData){
 }
 
 exports.checkTingPai = checkTingPai;
-
-exports.getMJType = function(pai){
-      if(id >= 0 && id < 9){
-          return 0;
-      }
-      else if(id >= 9 && id < 18){
-          return 1;
-      }
-      else if(id >= 18 && id < 27){
-          return 2;
-      }
-}

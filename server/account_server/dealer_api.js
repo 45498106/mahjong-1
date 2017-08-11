@@ -10,7 +10,6 @@ function send(res,ret){
 	res.send(str)
 }
 
-
 exports.start = function(config){
 	app.listen(config.DEALDER_API_PORT,config.DEALDER_API_IP);
 	console.log("dealer api is listening on " + config.DEALDER_API_IP + ":" + config.DEALDER_API_PORT);
